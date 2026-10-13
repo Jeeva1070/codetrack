@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 suite('CodeTrack Extension Integration Test Suite', () => {
   suiteSetup(async () => {
     // Wait for extension host initialization
-    const ext = vscode.extensions.getExtension('jeeva.codetrack');
+    const ext = vscode.extensions.getExtension('jeevavarshan.codetrack');
     if (ext && !ext.isActive) {
       await ext.activate();
     }
