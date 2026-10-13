@@ -1,0 +1,18 @@
+{
+  "CodeTrack: Initializing...": "CodeTrack: Initializing...",
+  "CodeTrack: Without Token": "CodeTrack: Without Token",
+  "CodeTrack: Enter Token": "CodeTrack: Enter Token",
+  "CodeTrack: Token Invalid": "CodeTrack: Token Invalid",
+  "CodeTrack: Network Error": "CodeTrack: Network Error",
+  "CodeTrack: Offline (cached)": "CodeTrack: Offline (cached)",
+  "CodeTrack: Head to dashboard for statistics": "CodeTrack: Head to dashboard for statistics",
+  "CodeTrack: Input Your Token (from server)": "CodeTrack: Input Your Token (from server)",
+  "CodeTrack: Token validation succeeded": "CodeTrack: Token validation succeeded",
+  "CodeTrack: Token validation failed": "CodeTrack: Token validation failed",
+  "CodeTrack: Cannot Get Token": "CodeTrack: Cannot Get Token",
+  "Total code time": "Total code time",
+  "Today code time": "Today code time",
+  "24h code time": "24h code time",
+  "Enter Token": "Enter Token",
+  "Tracking is currently disabled in settings.": "Tracking is currently disabled in settings."
+}
