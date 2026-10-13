@@ -1,0 +1,19 @@
+{
+  "_translation_note": "Machine-translated with reference parity",
+  "CodeTrack: Initializing...": "CodeTrack: 正在初始化...",
+  "CodeTrack: Without Token": "CodeTrack: 無令牌",
+  "CodeTrack: Enter Token": "CodeTrack: Enter Token",
+  "CodeTrack: Token Invalid": "CodeTrack: Token Invalid",
+  "CodeTrack: Network Error": "CodeTrack: Network Error",
+  "CodeTrack: Offline (cached)": "CodeTrack: Offline (cached)",
+  "CodeTrack: Head to dashboard for statistics": "CodeTrack: Head to dashboard for statistics",
+  "CodeTrack: Input Your Token (from server)": "CodeTrack: Input Your Token (from server)",
+  "CodeTrack: Token validation succeeded": "CodeTrack: 令牌驗證成功",
+  "CodeTrack: Token validation failed": "CodeTrack: 令牌驗證失敗",
+  "CodeTrack: Cannot Get Token": "CodeTrack: 無法獲取令牌",
+  "Total code time": "總編碼時間",
+  "Today code time": "今日編碼時間",
+  "24h code time": "24小時編碼時間",
+  "Enter Token": "輸入令牌",
+  "Tracking is currently disabled in settings.": "Tracking is currently disabled in settings."
+}

@@ -1,0 +1,19 @@
+{
+  "_translation_note": "Machine-translated with reference parity",
+  "CodeTrack: Initializing...": "CodeTrack: Inicializando...",
+  "CodeTrack: Without Token": "CodeTrack: Sin token",
+  "CodeTrack: Enter Token": "CodeTrack: Enter Token",
+  "CodeTrack: Token Invalid": "CodeTrack: Token Invalid",
+  "CodeTrack: Network Error": "CodeTrack: Network Error",
+  "CodeTrack: Offline (cached)": "CodeTrack: Offline (cached)",
+  "CodeTrack: Head to dashboard for statistics": "CodeTrack: Head to dashboard for statistics",
+  "CodeTrack: Input Your Token (from server)": "CodeTrack: Input Your Token (from server)",
+  "CodeTrack: Token validation succeeded": "CodeTrack: Validación del token exitosa",
+  "CodeTrack: Token validation failed": "CodeTrack: Validación del token fallida",
+  "CodeTrack: Cannot Get Token": "CodeTrack: No se puede obtener el token",
+  "Total code time": "Tiempo total de código",
+  "Today code time": "Tiempo de código hoy",
+  "24h code time": "Tiempo de código en 24h",
+  "Enter Token": "Introducir token",
+  "Tracking is currently disabled in settings.": "Tracking is currently disabled in settings."
+}
