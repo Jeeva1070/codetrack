@@ -83,6 +83,7 @@ export class HttpBackendClient implements IBackendClient {
       project: e.project,
       language: e.language,
       relativeFile: e.file,
+      absoluteFile: e.absoluteFile,
       editor: e.editor,
       platform: e.platform,
       platformArch: e.platformArch,

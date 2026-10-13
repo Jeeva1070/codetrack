@@ -56,7 +56,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(tracker);
 
     // 7. Register Commands
-    registerCommands(context, tokenManager, statusBar);
+    registerCommands(context, tokenManager, statusBar, eventQueue);
 
     // 8. One-time notification if token is missing
     if (!token) {

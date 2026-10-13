@@ -7,7 +7,8 @@ import { getDashboardUrl, StatusBarInfoMode } from './config';
 export function registerCommands(
   context: vscode.ExtensionContext,
   tokenManager: TokenManager,
-  statusBar: CodeTrackStatusBar
+  statusBar: CodeTrackStatusBar,
+  eventQueue?: import('./queue').EventQueue
 ): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 
@@ -25,6 +26,16 @@ export function registerCommands(
     vscode.commands.registerCommand('codetrack.toDashboard', async () => {
       const url = getDashboardUrl();
       await vscode.env.openExternal(vscode.Uri.parse(url));
+    })
+  );
+
+  // 3. codetrack.viewDashboard (In-editor interactive analytics)
+  disposables.push(
+    vscode.commands.registerCommand('codetrack.viewDashboard', async () => {
+      if (eventQueue) {
+        const { DashboardPanel } = await import('./dashboardView');
+        DashboardPanel.createOrShow(eventQueue);
+      }
     })
   );
 

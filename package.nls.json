@@ -4,6 +4,7 @@
   "command.getToken": "CodeTrack: Enter Token",
   "command.toDashboard": "CodeTrack: Browse Dashboard",
   "command.codeTimeInStatusBar": "CodeTrack: Select Status Bar Display",
+  "command.viewDashboard": "CodeTrack: View Analytics Dashboard (In-Editor)",
   "config.title": "CodeTrack",
   "config.statusBarInfo.description": "Select the duration window displayed in the status bar.",
   "config.statusBarInfo.enum.total": "Show total all-time code time",

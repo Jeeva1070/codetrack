@@ -1,5 +1,7 @@
 import http from 'node:http';
 import { AddressInfo } from 'node:net';
+import { calculateHeatmap, calculateProjectStats, calculateLanguageStats, calculateLeaderboard } from './analytics';
+import { OperationType } from './tracker';
 
 export interface IMockReceivedEvent {
   id?: string;
@@ -91,6 +93,73 @@ export class MockCodeTrackServer {
         if (req.method === 'GET' && url.pathname === '/v3/users/self/minutes') {
           res.writeHead(200, { 'Content-Type': 'application/json' });
           res.end(JSON.stringify({ minutes: this.mockMinutes }));
+          return;
+        }
+
+        if (req.method === 'GET' && url.pathname === '/v3/users/self/heatmap') {
+          const events = this.receivedEvents.map((e) => ({
+            id: String(e.id || ''),
+            timestamp: Number(e.eventTime || Date.now()),
+            project: String(e.project || 'Unknown'),
+            language: String(e.language || 'plaintext'),
+            file: String(e.relativeFile || ''),
+            platform: String(e.platform || 'macOS'),
+            platformArch: String(e.platformArch || 'arm64'),
+            editor: String(e.editor || 'vscode'),
+            operationType: (e.operationType || 'write') as OperationType,
+          }));
+          const summary = calculateHeatmap(events);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify(summary));
+          return;
+        }
+
+        if (req.method === 'GET' && url.pathname === '/v3/users/self/projects') {
+          const events = this.receivedEvents.map((e) => ({
+            id: String(e.id || ''),
+            timestamp: Number(e.eventTime || Date.now()),
+            project: String(e.project || 'Unknown'),
+            language: String(e.language || 'plaintext'),
+            file: String(e.relativeFile || ''),
+            platform: String(e.platform || 'macOS'),
+            platformArch: String(e.platformArch || 'arm64'),
+            editor: String(e.editor || 'vscode'),
+            operationType: (e.operationType || 'write') as OperationType,
+          }));
+          const projects = calculateProjectStats(events);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ projects }));
+          return;
+        }
+
+        if (req.method === 'GET' && url.pathname === '/v3/users/self/languages') {
+          const events = this.receivedEvents.map((e) => ({
+            id: String(e.id || ''),
+            timestamp: Number(e.eventTime || Date.now()),
+            project: String(e.project || 'Unknown'),
+            language: String(e.language || 'plaintext'),
+            file: String(e.relativeFile || ''),
+            platform: String(e.platform || 'macOS'),
+            platformArch: String(e.platformArch || 'arm64'),
+            editor: String(e.editor || 'vscode'),
+            operationType: (e.operationType || 'write') as OperationType,
+          }));
+          const languages = calculateLanguageStats(events);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ languages }));
+          return;
+        }
+
+        if (req.method === 'GET' && url.pathname === '/v3/users/leaderboard') {
+          const leaderboard = calculateLeaderboard([
+            { name: 'You (Active Session)', minutes: this.mockMinutes },
+            { name: 'Alex Rivers', minutes: 420 },
+            { name: 'Sarah Chen', minutes: 360 },
+            { name: 'Elena Rostova', minutes: 295 },
+            { name: 'Marcus Vance', minutes: 180 },
+          ]);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ leaderboard }));
           return;
         }
 

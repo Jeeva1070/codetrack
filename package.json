@@ -33,6 +33,10 @@
       {
         "command": "codetrack.codeTimeInStatusBar",
         "title": "%command.codeTimeInStatusBar%"
+      },
+      {
+        "command": "codetrack.viewDashboard",
+        "title": "%command.viewDashboard%"
       }
     ],
     "configuration": {

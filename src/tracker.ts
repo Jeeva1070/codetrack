@@ -13,6 +13,7 @@ export interface IActivityEvent {
   project: string;
   language: string;
   file: string;
+  absoluteFile?: string;
   platform: string;
   platformArch: string;
   editor: string;
@@ -181,6 +182,7 @@ export class ActivityTracker implements vscode.Disposable {
     const folderPath = workspaceFolder?.uri.fsPath;
 
     const fileValue = config.obfuscateFilePaths ? sha256(relativeFilePath) : relativeFilePath;
+    const absoluteFileValue = config.obfuscateFilePaths ? sha256(doc.fileName) : doc.fileName;
 
     const event: IActivityEvent = {
       id: uuidv4(),
@@ -188,6 +190,7 @@ export class ActivityTracker implements vscode.Disposable {
       project: projectName,
       language: doc.languageId || 'unknown',
       file: fileValue,
+      absoluteFile: absoluteFileValue,
       platform: this.platformString,
       platformArch: this.platformArch,
       editor: `vscode ${vscode.version || '1.99.0'}`,

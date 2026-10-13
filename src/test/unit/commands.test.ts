@@ -47,10 +47,11 @@ describe('Commands Unit Tests', () => {
 
     const disposables = registerCommands(mockContext, tokenManager, statusBar);
 
-    assert.strictEqual(disposables.length, 3);
+    assert.strictEqual(disposables.length, 4);
     assert.ok(registeredCommands.includes('codetrack.getToken'));
     assert.ok(registeredCommands.includes('codetrack.toDashboard'));
     assert.ok(registeredCommands.includes('codetrack.codeTimeInStatusBar'));
+    assert.ok(registeredCommands.includes('codetrack.viewDashboard'));
 
     statusBar.dispose();
     vscode.commands.registerCommand = origRegister;
