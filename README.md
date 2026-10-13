@@ -1,71 +1,118 @@
-# codetrack README
+# CodeTrack for Visual Studio Code
 
-This is the README for your extension "codetrack". After writing up a brief description, we recommend including the following sections.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.99.0-blue)](https://marketplace.visualstudio.com)
 
-## Features
+**CodeTrack** is a high-performance, lightweight, and privacy-first Visual Studio Code extension that tracks your active programming time and displays real-time statistics in the status bar.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Modeled on the architecture of the open-source CodeTime extension, CodeTrack features a robust offline queue, exponential backoff with jitter, zero-latency local event throttling, and native multi-language internationalization.
 
 ---
 
-## Following extension guidelines
+## ✨ Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- **Status Bar Duration**: Shows your active coding time right in your status bar (e.g. `$(clock) 3h 12m`).
+- **Flexible Modes**:
+  - **Total**: All-time accumulated programming duration.
+  - **Today**: Programming time since midnight in your local timezone.
+  - **24h**: Programming time across the trailing 24 hours.
+- **Offline & Crash Resilient**: Events are buffered in memory and mirrored to persistent storage. If your network drops or the server is temporarily unavailable, your coding time is never lost.
+- **Privacy First**: CodeTrack **never** logs or transmits file contents, keystrokes, terminal contents, or clipboard data.
+- **Path Obfuscation**: Optional setting to hash relative workspace paths with SHA-256 for complete confidentiality in proprietary codebases.
+- **Internationalization**: Localized in 13 languages (English, Simplified Chinese, Traditional Chinese, Japanese, German, French, Spanish, Italian, Brazilian Portuguese, Russian, Korean, Hindi, and Urdu with RTL support).
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## 🚀 Getting Started
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+### 1. Enter Your Upload Token
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+To sync statistics with your backend server:
 
-## For more information
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
+2. Run `CodeTrack: Enter Token`.
+3. Paste your authentication token. It is validated immediately against the server and stored securely in VS Code `SecretStorage`.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+#### Online IDEs and GitHub Codespaces
+In cloud-hosted environments like GitHub Codespaces, you can supply your token seamlessly via an environment variable without needing manual prompts:
+```bash
+export CODETIME_TOKEN="your-secret-token"
+```
+CodeTrack automatically checks `CODETIME_TOKEN` on startup before looking in secret storage.
 
-**Enjoy!**
+### 2. View Status Bar Time
+
+The status bar item is located on the bottom-left of VS Code:
+- Click the status bar to jump straight to your web dashboard (`CodeTrack: Browse Dashboard`).
+- Run `CodeTrack: Select Status Bar Display` to toggle between **Total**, **Today**, or **24h**.
+
+---
+
+## 🔒 Privacy & Data Collection
+
+CodeTrack only collects high-level programming activity telemetry to accurately compute time spent per project and language.
+
+### What is collected:
+- **Timestamp** (epoch milliseconds)
+- **Project name** (workspace folder name)
+- **Language ID** (e.g. `typescript`, `python`, `rust`)
+- **Relative file path** (e.g. `src/index.ts` — or its SHA-256 hash if obfuscation is enabled)
+- **Operation type** (`write`, `save`, `open`, `focus`)
+- **Editor & OS version** (`vscode 1.99.x`, operating system name)
+- **Git branch & remote** (if available)
+
+### What is NEVER collected:
+- ❌ Source code contents
+- ❌ Keystrokes or character inputs
+- ❌ Passwords, environment files, or clipboard data
+- ❌ Output console logs or terminal buffers
+
+---
+
+## ⚙️ Settings
+
+| Setting | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `codetrack.statusBarInfo` | `enum` | `"Total"` | Choose between `"Total"`, `"Today"`, and `"24h"`. |
+| `codetrack.serverEntrypoint` | `string` | `"https://api.codetime.dev"` | Base URL for the reporting API. |
+| `codetrack.proxy` | `string` | `""` | Optional HTTP/HTTPS proxy. Falls back to VS Code and system proxy environment variables. |
+| `codetrack.displayLanguage` | `enum` | `"Auto"` | Display language (or `"Auto"` to match VS Code). |
+| `codetrack.trackingEnabled` | `boolean` | `true` | Enable or disable programming activity tracking. |
+| `codetrack.obfuscateFilePaths` | `boolean` | `false` | When enabled, converts file paths into SHA-256 hashes before reporting. |
+
+---
+
+## 🧪 Testing with Local Mock Server
+
+CodeTrack includes a built-in mock server (`src/mockServer.ts`) for testing and offline development:
+```typescript
+import { MockCodeTrackServer } from './mockServer';
+
+const server = new MockCodeTrackServer();
+const serverUrl = await server.start();
+console.log(`Mock server running at: ${serverUrl}`);
+```
+
+---
+
+## 🛠️ Building & Packaging
+
+```bash
+# Install dependencies
+pnpm install
+
+# Compile with Webpack 5
+pnpm run compile
+
+# Run tests
+pnpm test
+
+# Build production VSIX package
+pnpm run vscode:package
+```
+
+---
+
+## 📄 License
+
+MIT © [Jeeva](https://github.com/Jeeva1070)

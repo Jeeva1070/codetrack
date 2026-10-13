@@ -7,6 +7,10 @@
   "categories": [
     "Other"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jeeva1070/codetrack"
+  },
   "main": "./dist/extension.js",
   "icon": "images/icon.png",
   "engines": {
@@ -111,8 +115,8 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
-    "vscode:package": "vsce package",
-    "vscode:publish": "vsce package && vsce publish",
+    "vscode:package": "vsce package --no-dependencies",
+    "vscode:publish": "vsce package --no-dependencies && vsce publish",
     "compile": "webpack --devtool nosources-source-map --config ./build/node-extension.webpack.config.js",
     "watch": "webpack --watch --devtool nosources-source-map --config ./build/node-extension.webpack.config.js",
     "package": "webpack --mode production --config ./build/node-extension.webpack.config.js",
