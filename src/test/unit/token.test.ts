@@ -18,6 +18,10 @@ class MockSecretStorage {
     this.storeMap.delete(key);
   }
 
+  async keys(): Promise<string[]> {
+    return Array.from(this.storeMap.keys());
+  }
+
   onDidChange = () => ({ dispose: () => {} });
 }
 
