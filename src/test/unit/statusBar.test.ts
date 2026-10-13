@@ -53,28 +53,28 @@ describe('CodeTrackStatusBar Unit Tests', () => {
     await statusBar.refresh();
     const item = statusBar.getStatusBarItem();
     assert.ok(item.text.includes('Without Token'), `Text was: ${item.text}`);
-    assert.strictEqual(item.command, 'codetrack.getToken');
+    assert.strictEqual(item.command, 'gridly.getToken');
   });
 
   it('should transition to Token Invalid state when token marked invalid', async () => {
-    await secrets.store('codetrack.token', 'bad-token');
+    await secrets.store('gridly.token', 'bad-token');
     await tokenManager.resolveToken();
     tokenManager.markInvalid();
 
     await statusBar.refresh();
     const item = statusBar.getStatusBarItem();
     assert.ok(item.text.includes('Token Invalid'), `Text was: ${item.text}`);
-    assert.strictEqual(item.command, 'codetrack.getToken');
+    assert.strictEqual(item.command, 'gridly.getToken');
   });
 
   it('should transition to success duration when token is valid', async () => {
-    await secrets.store('codetrack.token', 'good-token');
+    await secrets.store('gridly.token', 'good-token');
     await tokenManager.resolveToken();
 
     await statusBar.refresh();
     const item = statusBar.getStatusBarItem();
     assert.ok(item.text.includes('$(clock)'), `Text was: ${item.text}`);
     assert.ok(item.text.includes('3h') || item.text.includes('3 hours'), `Text was: ${item.text}`);
-    assert.strictEqual(item.command, 'codetrack.toDashboard');
+    assert.strictEqual(item.command, 'gridly.toDashboard');
   });
 });

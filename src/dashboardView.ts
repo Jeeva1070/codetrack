@@ -27,8 +27,8 @@ export class DashboardPanel {
     }
 
     const panel = vscode.window.createWebviewPanel(
-      'codetrackDashboard',
-      'CodeTrack Analytics Dashboard',
+      'gridlyDashboard',
+      'Gridly Analytics Dashboard',
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -125,7 +125,7 @@ export class DashboardPanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CodeTrack Analytics Dashboard</title>
+  <title>Gridly Analytics Dashboard</title>
   <style>
     :root {
       --bg: #090d16;
@@ -283,7 +283,7 @@ export class DashboardPanel {
 </head>
 <body>
   <div class="header">
-    <div class="title">⚡ CodeTrack Analytics Dashboard</div>
+    <div class="title">⚡ Gridly Analytics Dashboard</div>
     <div style="font-size: 13px; color: var(--text-muted);">Real-time Telemetry & Statistics</div>
   </div>
 

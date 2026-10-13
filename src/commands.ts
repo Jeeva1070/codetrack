@@ -12,26 +12,26 @@ export function registerCommands(
 ): vscode.Disposable[] {
   const disposables: vscode.Disposable[] = [];
 
-  // 1. codetrack.getToken
+  // 1. gridly.getToken
   disposables.push(
-    vscode.commands.registerCommand('codetrack.getToken', async () => {
+    vscode.commands.registerCommand('gridly.getToken', async () => {
       await tokenManager.promptAndSetToken(() => {
         statusBar.refresh(true);
       });
     })
   );
 
-  // 2. codetrack.toDashboard
+  // 2. gridly.toDashboard
   disposables.push(
-    vscode.commands.registerCommand('codetrack.toDashboard', async () => {
+    vscode.commands.registerCommand('gridly.toDashboard', async () => {
       const url = getDashboardUrl();
       await vscode.env.openExternal(vscode.Uri.parse(url));
     })
   );
 
-  // 3. codetrack.viewDashboard (In-editor interactive analytics)
+  // 3. gridly.viewDashboard (In-editor interactive analytics)
   disposables.push(
-    vscode.commands.registerCommand('codetrack.viewDashboard', async () => {
+    vscode.commands.registerCommand('gridly.viewDashboard', async () => {
       if (eventQueue) {
         const { DashboardPanel } = await import('./dashboardView');
         DashboardPanel.createOrShow(eventQueue);
@@ -39,10 +39,10 @@ export function registerCommands(
     })
   );
 
-  // 3. codetrack.codeTimeInStatusBar
+  // 4. gridly.codeTimeInStatusBar
   disposables.push(
-    vscode.commands.registerCommand('codetrack.codeTimeInStatusBar', async () => {
-      const currentMode = vscode.workspace.getConfiguration('codetrack').get<string>('statusBarInfo', 'Total');
+    vscode.commands.registerCommand('gridly.codeTimeInStatusBar', async () => {
+      const currentMode = vscode.workspace.getConfiguration('gridly').get<string>('statusBarInfo', 'Total');
 
       interface ModeQuickPickItem extends vscode.QuickPickItem {
         mode: StatusBarInfoMode;
@@ -67,12 +67,12 @@ export function registerCommands(
       ];
 
       const selected = await vscode.window.showQuickPick(items, {
-        placeHolder: t('CodeTrack: Select Status Bar Display'),
+        placeHolder: t('Gridly: Select Status Bar Display'),
       });
 
       if (selected) {
         await vscode.workspace
-          .getConfiguration('codetrack')
+          .getConfiguration('gridly')
           .update('statusBarInfo', selected.mode, vscode.ConfigurationTarget.Global);
         await statusBar.refresh();
       }

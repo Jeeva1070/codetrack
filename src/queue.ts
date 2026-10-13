@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { IActivityEvent } from './tracker';
 
-export const QUEUE_STORAGE_KEY = 'codetrack.eventQueue';
+export const QUEUE_STORAGE_KEY = 'gridly.eventQueue';
+export const LEGACY_QUEUE_STORAGE_KEY = 'codetrack.eventQueue';
 
 export class EventQueue {
   private inMemoryQueue: IActivityEvent[] = [];
@@ -17,7 +18,9 @@ export class EventQueue {
    */
   public load(): void {
     try {
-      const persisted = this.globalState.get<IActivityEvent[]>(QUEUE_STORAGE_KEY, []);
+      const persisted =
+        this.globalState.get<IActivityEvent[]>(QUEUE_STORAGE_KEY) ||
+        this.globalState.get<IActivityEvent[]>(LEGACY_QUEUE_STORAGE_KEY, []);
       if (Array.isArray(persisted)) {
         this.inMemoryQueue = [...persisted];
       }

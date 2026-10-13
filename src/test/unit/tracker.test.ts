@@ -11,8 +11,8 @@ describe('ActivityTracker Unit Tests', () => {
 
   beforeEach(() => {
     emittedEvents.length = 0;
-    mockConfigStore['codetrack.trackingEnabled'] = true;
-    mockConfigStore['codetrack.obfuscateFilePaths'] = false;
+    mockConfigStore['gridly.trackingEnabled'] = true;
+    mockConfigStore['gridly.obfuscateFilePaths'] = false;
     tracker = new ActivityTracker((e) => emittedEvents.push(e));
   });
 
@@ -100,7 +100,7 @@ describe('ActivityTracker Unit Tests', () => {
   });
 
   it('should obfuscate file paths with sha256 when setting is active', () => {
-    mockConfigStore['codetrack.obfuscateFilePaths'] = true;
+    mockConfigStore['gridly.obfuscateFilePaths'] = true;
     const doc = {
       uri: { scheme: 'file' },
       isUntitled: false,
@@ -114,7 +114,7 @@ describe('ActivityTracker Unit Tests', () => {
   });
 
   it('should respect trackingEnabled = false and produce no events', () => {
-    mockConfigStore['codetrack.trackingEnabled'] = false;
+    mockConfigStore['gridly.trackingEnabled'] = false;
     const doc = {
       uri: { scheme: 'file' },
       isUntitled: false,

@@ -75,7 +75,7 @@ describe('Uploader & MockServer Unit Tests', () => {
   beforeEach(async () => {
     mockServer.setSimulatedStatus(null);
     mockServer.clearReceivedEvents();
-    mockConfigStore['codetrack.serverEntrypoint'] = serverUrl;
+    mockConfigStore['gridly.serverEntrypoint'] = serverUrl;
     queue = new EventQueue(new TestMemento());
     secrets = new TestSecrets();
     await secrets.store(SECRET_STORAGE_TOKEN_KEY, mockServer.validToken);

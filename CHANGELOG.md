@@ -1,11 +1,11 @@
 # Changelog
 
-All notable changes to the **CodeTrack** extension will be documented in this file.
+All notable changes to the **Gridly** extension will be documented in this file.
 
 ## [0.1.0] - 2026-10-13
 
 ### Added
-- Initial release of CodeTrack for Visual Studio Code.
+- Initial release of Gridly for Visual Studio Code.
 - Real-time active programming tracking across multiple operation types (write, save, open, focus).
 - Status bar statistics with Total, Today, and 24h duration views.
 - Secure token handling via `SecretStorage` and `CODETIME_TOKEN` environment variable support.

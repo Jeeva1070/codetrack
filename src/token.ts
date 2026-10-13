@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { t } from './i18n';
 import { getConfig } from './config';
 
-export const SECRET_STORAGE_TOKEN_KEY = 'codetrack.token';
+export const SECRET_STORAGE_TOKEN_KEY = 'gridly.token';
+export const LEGACY_SECRET_STORAGE_TOKEN_KEY = 'codetrack.token';
 
 export type TokenValidator = (token: string, serverEntrypoint: string) => Promise<boolean>;
 
@@ -30,7 +31,10 @@ export class TokenManager {
       return envToken;
     }
 
-    const secretToken = (await this.secrets.get(SECRET_STORAGE_TOKEN_KEY)) || '';
+    const secretToken =
+      (await this.secrets.get(SECRET_STORAGE_TOKEN_KEY)) ||
+      (await this.secrets.get(LEGACY_SECRET_STORAGE_TOKEN_KEY)) ||
+      '';
     this.cachedToken = secretToken.trim();
     return this.cachedToken;
   }
@@ -66,7 +70,7 @@ export class TokenManager {
       this.hasShownAuthError = true;
       const enterTokenBtn = t('Enter Token');
       vscode.window
-        .showErrorMessage(t('CodeTrack: Token Invalid'), enterTokenBtn)
+        .showErrorMessage(t('Gridly: Token Invalid'), enterTokenBtn)
         .then((choice) => {
           if (choice === enterTokenBtn) {
             this.promptAndSetToken(onStatusUpdate);
@@ -83,11 +87,11 @@ export class TokenManager {
     const input = await vscode.window.showInputBox({
       password: true,
       ignoreFocusOut: true,
-      placeHolder: t('CodeTrack: Input Your Token (from server)'),
-      prompt: t('CodeTrack: Enter Token'),
+      placeHolder: t('Gridly: Input Your Token (from server)'),
+      prompt: t('Gridly: Enter Token'),
       validateInput: (val) => {
         if (!val || val.trim().length === 0) {
-          return t('CodeTrack: Cannot Get Token');
+          return t('Gridly: Cannot Get Token');
         }
         return null;
       },
@@ -100,7 +104,7 @@ export class TokenManager {
 
     const trimmed = input.trim();
     if (!trimmed) {
-      vscode.window.showWarningMessage(t('CodeTrack: Cannot Get Token'));
+      vscode.window.showWarningMessage(t('Gridly: Cannot Get Token'));
       return false;
     }
 
@@ -108,7 +112,7 @@ export class TokenManager {
     const config = getConfig();
     const isValid = await this.validateToken(trimmed, config.serverEntrypoint);
     if (!isValid) {
-      vscode.window.showErrorMessage(t('CodeTrack: Token validation failed'));
+      vscode.window.showErrorMessage(t('Gridly: Token validation failed'));
       return false;
     }
 
@@ -116,7 +120,7 @@ export class TokenManager {
     this.cachedToken = trimmed;
     this.markValid();
 
-    vscode.window.showInformationMessage(t('CodeTrack: Token validation succeeded'));
+    vscode.window.showInformationMessage(t('Gridly: Token validation succeeded'));
     if (onSuccess) {
       onSuccess();
     }
@@ -142,7 +146,7 @@ export class TokenManager {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${token}`,
-          'User-Agent': 'CodeTrack Client',
+          'User-Agent': 'Gridly Client',
         },
         signal: AbortSignal.timeout(10_000),
       });

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const mockConfigStore: Record<string, any> = {
-  'codetrack.statusBarInfo': 'Total',
-  'codetrack.serverEntrypoint': 'https://api.codetime.dev',
-  'codetrack.proxy': '',
-  'codetrack.displayLanguage': 'Auto',
-  'codetrack.trackingEnabled': true,
-  'codetrack.obfuscateFilePaths': false,
+  'gridly.statusBarInfo': 'Total',
+  'gridly.serverEntrypoint': 'https://api.codetime.dev',
+  'gridly.proxy': '',
+  'gridly.displayLanguage': 'Auto',
+  'gridly.trackingEnabled': true,
+  'gridly.obfuscateFilePaths': false,
   'http.proxy': '',
 };
 

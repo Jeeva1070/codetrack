@@ -14,27 +14,27 @@ export class CodeTrackStatusBar implements vscode.Disposable {
     this.statsService = statsService;
     this.tokenManager = tokenManager;
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
-    this.statusBarItem.command = 'codetrack.toDashboard';
+    this.statusBarItem.command = 'gridly.toDashboard';
     this.setInitializing();
     this.statusBarItem.show();
   }
 
   public setInitializing(): void {
-    this.statusBarItem.text = `$(clock) ${t('CodeTrack: Initializing...')}`;
-    this.statusBarItem.tooltip = t('CodeTrack: Initializing...');
-    this.statusBarItem.command = 'codetrack.toDashboard';
+    this.statusBarItem.text = `$(clock) ${t('Gridly: Initializing...')}`;
+    this.statusBarItem.tooltip = t('Gridly: Initializing...');
+    this.statusBarItem.command = 'gridly.toDashboard';
   }
 
   public setNoToken(): void {
-    this.statusBarItem.text = `$(clock) ${t('CodeTrack: Without Token')}`;
+    this.statusBarItem.text = `$(clock) ${t('Gridly: Without Token')}`;
     this.statusBarItem.tooltip = t('Enter Token');
-    this.statusBarItem.command = 'codetrack.getToken';
+    this.statusBarItem.command = 'gridly.getToken';
   }
 
   public setInvalidToken(): void {
-    this.statusBarItem.text = `$(clock) ${t('CodeTrack: Token Invalid')}`;
+    this.statusBarItem.text = `$(clock) ${t('Gridly: Token Invalid')}`;
     this.statusBarItem.tooltip = t('Enter Token');
-    this.statusBarItem.command = 'codetrack.getToken';
+    this.statusBarItem.command = 'gridly.getToken';
   }
 
   public async setOffline(cachedMinutes?: number): Promise<void> {
@@ -42,8 +42,8 @@ export class CodeTrackStatusBar implements vscode.Disposable {
     const lang = config.displayLanguage === 'Auto' ? getCurrentLanguage() : config.displayLanguage;
     const durationText = cachedMinutes !== undefined ? await formatDurationLocalized(cachedMinutes, lang) : '0m';
     this.statusBarItem.text = `$(cloud-offline) ${durationText}`;
-    this.statusBarItem.tooltip = t('CodeTrack: Offline (cached)');
-    this.statusBarItem.command = 'codetrack.toDashboard';
+    this.statusBarItem.tooltip = t('Gridly: Offline (cached)');
+    this.statusBarItem.command = 'gridly.toDashboard';
   }
 
   public async setSuccess(minutes: number): Promise<void> {
@@ -51,8 +51,8 @@ export class CodeTrackStatusBar implements vscode.Disposable {
     const lang = config.displayLanguage === 'Auto' ? getCurrentLanguage() : config.displayLanguage;
     const durationText = await formatDurationLocalized(minutes, lang);
     this.statusBarItem.text = `$(clock) ${durationText}`;
-    this.statusBarItem.tooltip = t('CodeTrack: Head to dashboard for statistics');
-    this.statusBarItem.command = 'codetrack.toDashboard';
+    this.statusBarItem.tooltip = t('Gridly: Head to dashboard for statistics');
+    this.statusBarItem.command = 'gridly.toDashboard';
   }
 
   /**
@@ -77,7 +77,7 @@ export class CodeTrackStatusBar implements vscode.Disposable {
       const minutes = await this.statsService.fetchStats(mode, token);
       await this.setSuccess(minutes);
       if (showSuccessToast) {
-        vscode.window.showInformationMessage(t('CodeTrack: Token validation succeeded'));
+        vscode.window.showInformationMessage(t('Gridly: Token validation succeeded'));
       }
     } catch {
       // Offline fallback: check cached value
@@ -85,9 +85,9 @@ export class CodeTrackStatusBar implements vscode.Disposable {
       if (cached !== undefined) {
         await this.setOffline(cached);
       } else {
-        this.statusBarItem.text = `$(clock) ${t('CodeTrack: Network Error')}`;
-        this.statusBarItem.tooltip = t('CodeTrack: Network Error');
-        this.statusBarItem.command = 'codetrack.toDashboard';
+        this.statusBarItem.text = `$(clock) ${t('Gridly: Network Error')}`;
+        this.statusBarItem.tooltip = t('Gridly: Network Error');
+        this.statusBarItem.command = 'gridly.toDashboard';
       }
     }
   }

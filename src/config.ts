@@ -11,7 +11,7 @@ export interface IExtensionConfig {
   obfuscateFilePaths: boolean;
 }
 
-export const CONFIG_SECTION = 'codetrack';
+export const CONFIG_SECTION = 'gridly';
 
 export const DEFAULT_SERVER_ENTRYPOINT = 'https://api.codetime.dev';
 export const DEFAULT_DASHBOARD_URL = 'https://codetime.dev/dashboard';
@@ -33,7 +33,7 @@ export function getConfig(): IExtensionConfig {
 
 /**
  * Resolves the effective proxy URL:
- * 1. codetrack.proxy setting
+ * 1. gridly.proxy setting
  * 2. VS Code http.proxy setting
  * 3. Environment variables (HTTPS_PROXY, HTTP_PROXY, https_proxy, http_proxy)
  */

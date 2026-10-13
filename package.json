@@ -1,6 +1,6 @@
 {
   "publisher": "jeevavarshan",
-  "name": "codetrack",
+  "name": "gridly",
   "displayName": "%extension.name%",
   "version": "0.1.0",
   "description": "%extension.description%",
@@ -23,26 +23,26 @@
   "contributes": {
     "commands": [
       {
-        "command": "codetrack.getToken",
+        "command": "gridly.getToken",
         "title": "%command.getToken%"
       },
       {
-        "command": "codetrack.toDashboard",
+        "command": "gridly.toDashboard",
         "title": "%command.toDashboard%"
       },
       {
-        "command": "codetrack.codeTimeInStatusBar",
+        "command": "gridly.codeTimeInStatusBar",
         "title": "%command.codeTimeInStatusBar%"
       },
       {
-        "command": "codetrack.viewDashboard",
+        "command": "gridly.viewDashboard",
         "title": "%command.viewDashboard%"
       }
     ],
     "configuration": {
       "title": "%config.title%",
       "properties": {
-        "codetrack.statusBarInfo": {
+        "gridly.statusBarInfo": {
           "type": "string",
           "default": "Total",
           "enum": [
@@ -57,17 +57,17 @@
           ],
           "description": "%config.statusBarInfo.description%"
         },
-        "codetrack.serverEntrypoint": {
+        "gridly.serverEntrypoint": {
           "type": "string",
           "default": "https://api.codetime.dev",
           "description": "%config.serverEntrypoint.description%"
         },
-        "codetrack.proxy": {
+        "gridly.proxy": {
           "type": "string",
           "default": "",
           "description": "%config.proxy.description%"
         },
-        "codetrack.displayLanguage": {
+        "gridly.displayLanguage": {
           "type": "string",
           "default": "Auto",
           "enum": [
@@ -104,12 +104,12 @@
           ],
           "description": "%config.displayLanguage.description%"
         },
-        "codetrack.trackingEnabled": {
+        "gridly.trackingEnabled": {
           "type": "boolean",
           "default": true,
           "description": "%config.trackingEnabled.description%"
         },
-        "codetrack.obfuscateFilePaths": {
+        "gridly.obfuscateFilePaths": {
           "type": "boolean",
           "default": false,
           "description": "%config.obfuscateFilePaths.description%"

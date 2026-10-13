@@ -15,7 +15,7 @@ let trackerInstance: ActivityTracker | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   try {
-    const outputChannel = vscode.window.createOutputChannel('CodeTrack');
+    const outputChannel = vscode.window.createOutputChannel('Gridly');
     context.subscriptions.push(outputChannel);
 
     // 1. Load config and initialize i18n
@@ -63,7 +63,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       statusBar.setNoToken();
       const enterTokenBtn = t('Enter Token');
       vscode.window
-        .showInformationMessage(t('CodeTrack: Without Token'), enterTokenBtn)
+        .showInformationMessage(t('Gridly: Without Token'), enterTokenBtn)
         .then((choice) => {
           if (choice === enterTokenBtn) {
             tokenManager.promptAndSetToken(() => {
@@ -82,20 +82,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // 10. Register live onDidChangeConfiguration listener
     context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(async (e) => {
-        if (!e.affectsConfiguration('codetrack')) {
+        if (!e.affectsConfiguration('gridly')) {
           return;
         }
 
         const newConfig = getConfig();
 
         // React to displayLanguage change live
-        if (e.affectsConfiguration('codetrack.displayLanguage')) {
+        if (e.affectsConfiguration('gridly.displayLanguage')) {
           await initI18n(context.extensionUri, newConfig.displayLanguage);
           await statusBar.refresh();
         }
 
         // React to serverEntrypoint or proxy changes live
-        if (e.affectsConfiguration('codetrack.serverEntrypoint') || e.affectsConfiguration('codetrack.proxy')) {
+        if (e.affectsConfiguration('gridly.serverEntrypoint') || e.affectsConfiguration('gridly.proxy')) {
           backendClient = new HttpBackendClient(outputChannel);
           uploader.setBackendClient(backendClient);
           uploader.flush();
@@ -103,16 +103,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
 
         // React to statusBarInfo mode change live
-        if (e.affectsConfiguration('codetrack.statusBarInfo')) {
+        if (e.affectsConfiguration('gridly.statusBarInfo')) {
           await statusBar.refresh();
         }
       })
     );
 
-    outputChannel.appendLine('[CodeTrack] Extension activated successfully');
+    outputChannel.appendLine('[Gridly] Extension activated successfully');
   } catch (err: unknown) {
     // Activation must never throw
-    console.error('[CodeTrack] Error during activation:', err);
+    console.error('[Gridly] Error during activation:', err);
   }
 }
 

@@ -35,8 +35,8 @@ describe('i18n Module Unit Tests', () => {
 
   it('should fallback to English for missing keys and placeholder interpolation', async () => {
     await initI18n(rootDir, 'en');
-    const msg = t('CodeTrack: Initializing...');
-    assert.strictEqual(msg, 'CodeTrack: Initializing...');
+    const msg = t('Gridly: Initializing...');
+    assert.strictEqual(msg, 'Gridly: Initializing...');
 
     const missing = t('NonExistentKey');
     assert.strictEqual(missing, 'NonExistentKey');

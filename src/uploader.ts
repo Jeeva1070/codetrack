@@ -31,7 +31,7 @@ export class HttpBackendClient implements IBackendClient {
   }
 
   private getUserAgent(): string {
-    return `CodeTrack Client/0.1.0 (${osName()}; VSCode ${vscode.version || '1.99.0'})`;
+    return `Gridly Client/0.1.0 (${osName()}; VSCode ${vscode.version || '1.99.0'})`;
   }
 
   public async uploadEvents(events: IActivityEvent[], token: string): Promise<UploadResponse> {

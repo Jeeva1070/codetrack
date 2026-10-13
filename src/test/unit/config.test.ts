@@ -5,9 +5,9 @@ import { mockConfigStore } from '../mockVscode';
 
 describe('Config Module Unit Tests', () => {
   beforeEach(() => {
-    mockConfigStore['codetrack.statusBarInfo'] = 'Total';
-    mockConfigStore['codetrack.serverEntrypoint'] = 'https://api.codetime.dev';
-    mockConfigStore['codetrack.proxy'] = '';
+    mockConfigStore['gridly.statusBarInfo'] = 'Total';
+    mockConfigStore['gridly.serverEntrypoint'] = 'https://api.codetime.dev';
+    mockConfigStore['gridly.proxy'] = '';
     mockConfigStore['http.proxy'] = '';
     delete process.env.HTTPS_PROXY;
     delete process.env.HTTP_PROXY;
@@ -40,7 +40,7 @@ describe('Config Module Unit Tests', () => {
     mockConfigStore['http.proxy'] = 'http://vscode-proxy:8080';
     assert.strictEqual(getEffectiveProxyUrl(), 'http://vscode-proxy:8080');
 
-    mockConfigStore['codetrack.proxy'] = 'http://extension-proxy:9090';
+    mockConfigStore['gridly.proxy'] = 'http://extension-proxy:9090';
     assert.strictEqual(getEffectiveProxyUrl(), 'http://extension-proxy:9090');
   });
 
