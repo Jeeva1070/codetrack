@@ -25,7 +25,7 @@ export function getConfig(): IExtensionConfig {
   const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
   return {
     statusBarInfo: config.get<StatusBarInfoMode>('statusBarInfo', 'Total'),
-    serverEntrypoint: config.get<string>('serverEntrypoint', 'https://api.codetime.dev'),
+    serverEntrypoint: config.get<string>('serverEntrypoint', DEFAULT_SUPABASE_URL),
     supabaseUrl: (config.get<string>('supabaseUrl', DEFAULT_SUPABASE_URL) || DEFAULT_SUPABASE_URL).trim().replace(/\/+$/, ''),
     supabaseKey: (config.get<string>('supabaseKey', DEFAULT_SUPABASE_KEY) || DEFAULT_SUPABASE_KEY).trim(),
     proxy: (config.get<string>('proxy', '') || '').trim(),
@@ -58,17 +58,14 @@ export function getEffectiveProxyUrl(): string {
 }
 
 /**
- * Derives the dashboard URL from the server or project URL.
+ * Derives the dashboard URL from the Supabase project URL.
  */
 export function getDashboardUrl(customUrl?: string): string {
-  const rawUrl = customUrl || getConfig().serverEntrypoint || getConfig().supabaseUrl || '';
+  const rawUrl = customUrl || getConfig().supabaseUrl || DEFAULT_SUPABASE_URL;
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.hostname === 'api.codetime.dev') {
-      return 'https://codetime.dev/dashboard';
-    }
-    const host = parsed.host.replace(/^api\./, '');
-    return `${parsed.protocol}//${host}/dashboard`;
+    const projectRef = parsed.hostname.split('.')[0];
+    return `https://supabase.com/dashboard/project/${projectRef}`;
   } catch {
     return rawUrl;
   }

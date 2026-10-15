@@ -74,8 +74,6 @@ Gridly only collects high-level programming activity telemetry to accurately com
 | Setting | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
 | `gridly.statusBarInfo` | `enum` | `"Total"` | Choose between `"Total"`, `"Today"`, and `"24h"`. |
-| `gridly.serverEntrypoint` | `string` | `"https://api.codetime.dev"` | Base URL for the reporting API. |
-| `gridly.proxy` | `string` | `""` | Optional HTTP/HTTPS proxy. Falls back to VS Code and system proxy environment variables. |
 | `gridly.displayLanguage` | `enum` | `"Auto"` | Display language (or `"Auto"` to match VS Code). |
 | `gridly.trackingEnabled` | `boolean` | `true` | Enable or disable programming activity tracking. |
 | `gridly.obfuscateFilePaths` | `boolean` | `false` | When enabled, converts file paths into SHA-256 hashes before reporting. |

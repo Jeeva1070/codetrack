@@ -6,7 +6,7 @@ import { mockConfigStore } from '../mockVscode';
 describe('Config Module Unit Tests', () => {
   beforeEach(() => {
     mockConfigStore['gridly.statusBarInfo'] = 'Total';
-    mockConfigStore['gridly.serverEntrypoint'] = 'https://api.codetime.dev';
+    mockConfigStore['gridly.serverEntrypoint'] = 'https://wixjrwlnsabceldorizr.supabase.co';
     mockConfigStore['gridly.proxy'] = '';
     mockConfigStore['http.proxy'] = '';
     delete process.env.HTTPS_PROXY;
@@ -16,21 +16,21 @@ describe('Config Module Unit Tests', () => {
   it('should return default configuration when unset', () => {
     const config = getConfig();
     assert.strictEqual(config.statusBarInfo, 'Total');
-    assert.strictEqual(config.serverEntrypoint, 'https://api.codetime.dev');
+    assert.strictEqual(config.serverEntrypoint, 'https://wixjrwlnsabceldorizr.supabase.co');
     assert.strictEqual(config.proxy, '');
     assert.strictEqual(config.displayLanguage, 'Auto');
     assert.strictEqual(config.trackingEnabled, true);
     assert.strictEqual(config.obfuscateFilePaths, false);
   });
 
-  it('should derive dashboard URL correctly for codetime.dev', () => {
-    const url = getDashboardUrl('https://api.codetime.dev');
-    assert.strictEqual(url, 'https://codetime.dev/dashboard');
+  it('should derive dashboard URL correctly for Supabase', () => {
+    const url = getDashboardUrl('https://wixjrwlnsabceldorizr.supabase.co');
+    assert.strictEqual(url, 'https://supabase.com/dashboard/project/wixjrwlnsabceldorizr');
   });
 
   it('should derive dashboard URL correctly for custom backend', () => {
-    const url = getDashboardUrl('https://api.mycompany.io:8443');
-    assert.strictEqual(url, 'https://mycompany.io:8443/dashboard');
+    const url = getDashboardUrl('https://custom-proj.supabase.co');
+    assert.strictEqual(url, 'https://supabase.com/dashboard/project/custom-proj');
   });
 
   it('should resolve effective proxy by precedence: extension > vscode > env', () => {

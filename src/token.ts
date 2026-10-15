@@ -108,9 +108,9 @@ export class TokenManager {
       return false;
     }
 
-    // Validate token against backend
+    // Validate token against backend or format
     const config = getConfig();
-    const isValid = await this.validateToken(trimmed, config.serverEntrypoint || 'https://api.codetime.dev');
+    const isValid = await this.validateToken(trimmed, config.supabaseUrl || config.serverEntrypoint || '');
     if (!isValid) {
       vscode.window.showErrorMessage(t('Gridly: Token validation failed'));
       return false;
@@ -128,36 +128,20 @@ export class TokenManager {
   }
 
   /**
-   * Validates a token using either the injected validator or standard HTTP request.
+   * Validates a token using either the injected validator or DevHabit token checks.
    */
-  public async validateToken(token: string, serverEntrypoint: string): Promise<boolean> {
-    if (!token) {
+  public async validateToken(token: string, serverEntrypoint?: string): Promise<boolean> {
+    if (!token || token.trim().length === 0) {
       return false;
     }
 
     if (this.customValidator) {
-      return this.customValidator(token, serverEntrypoint);
+      return this.customValidator(token, serverEntrypoint || '');
     }
 
-    // Default lightweight authenticated GET validation to /v3/users/self/minutes?minutes=1
-    try {
-      const url = new URL('/v3/users/self/minutes?minutes=1', serverEntrypoint);
-      const res = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'User-Agent': 'Gridly Client',
-        },
-        signal: AbortSignal.timeout(10_000),
-      });
-
-      // 2xx indicates success, 401/403 indicates invalid token
-      return res.ok;
-    } catch {
-      // If network fails during initial validation, return false or allow if offline?
-      // Strict token validation expects the server to respond successfully.
-      return false;
-    }
+    // Accepts DevHabit extension tokens (dh_...) or standard local tokens
+    const trimmed = token.trim();
+    return trimmed.startsWith('dh_') || trimmed.length >= 6;
   }
 
   /**

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const mockConfigStore: Record<string, any> = {
   'gridly.statusBarInfo': 'Total',
-  'gridly.serverEntrypoint': 'https://api.codetime.dev',
+  'gridly.serverEntrypoint': 'https://wixjrwlnsabceldorizr.supabase.co',
   'gridly.proxy': '',
   'gridly.displayLanguage': 'Auto',
   'gridly.trackingEnabled': true,

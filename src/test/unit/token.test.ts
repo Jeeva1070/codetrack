@@ -68,10 +68,10 @@ describe('TokenManager Unit Tests', () => {
     const validator = async (token: string) => token === 'valid-token';
     const tm = new TokenManager(mockSecrets as unknown as vscode.SecretStorage, validator);
 
-    const valid = await tm.validateToken('valid-token', 'https://api.codetime.dev');
+    const valid = await tm.validateToken('valid-token', 'https://wixjrwlnsabceldorizr.supabase.co');
     assert.strictEqual(valid, true);
 
-    const invalid = await tm.validateToken('bad-token', 'https://api.codetime.dev');
+    const invalid = await tm.validateToken('bad-token', 'https://wixjrwlnsabceldorizr.supabase.co');
     assert.strictEqual(invalid, false);
   });
 
