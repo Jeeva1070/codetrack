@@ -24,8 +24,13 @@ export function registerCommands(
   // 2. gridly.toDashboard
   disposables.push(
     vscode.commands.registerCommand('gridly.toDashboard', async () => {
-      const url = getDashboardUrl();
-      await vscode.env.openExternal(vscode.Uri.parse(url));
+      if (eventQueue) {
+        const { DashboardPanel } = await import('./dashboardView');
+        DashboardPanel.createOrShow(eventQueue);
+      } else {
+        const url = getDashboardUrl();
+        await vscode.env.openExternal(vscode.Uri.parse(url));
+      }
     })
   );
 

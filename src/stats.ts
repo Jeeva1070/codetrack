@@ -1,5 +1,7 @@
 import { IBackendClient } from './uploader';
 import { StatusBarInfoMode } from './config';
+import { IActivityEvent } from './tracker';
+import { EventQueue } from './queue';
 
 /**
  * Calculates the number of minutes to request from the server based on the mode.
@@ -22,31 +24,76 @@ export function calculateMinutesQuery(mode: StatusBarInfoMode, now = new Date())
   }
 }
 
+/**
+ * Calculates coding duration locally from activity events.
+ * Coalesces activity into 2-minute time buckets.
+ */
+export function calculateLocalMinutes(events: IActivityEvent[], mode: StatusBarInfoMode, now = new Date()): number {
+  if (events.length === 0) {
+    return 0;
+  }
+
+  const nowMs = now.getTime();
+  const startOfTodayMs = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const twentyFourHoursAgoMs = nowMs - 24 * 60 * 60 * 1000;
+
+  let filtered = events;
+  if (mode === 'Today') {
+    filtered = events.filter((e) => e.timestamp >= startOfTodayMs && e.timestamp <= nowMs);
+  } else if (mode === '24h') {
+    filtered = events.filter((e) => e.timestamp >= twentyFourHoursAgoMs && e.timestamp <= nowMs);
+  }
+
+  const bucketMs = 2 * 60 * 1000;
+  const buckets = new Set<number>();
+  for (const e of filtered) {
+    buckets.add(Math.floor(e.timestamp / bucketMs));
+  }
+  return buckets.size * 2;
+}
+
 export class StatsService {
-  private readonly backendClient: IBackendClient;
+  private readonly backendClient?: IBackendClient;
+  private readonly eventQueue?: EventQueue;
   private readonly cachedMinutes = new Map<StatusBarInfoMode, number>();
   private offlineState = false;
 
-  constructor(backendClient: IBackendClient) {
-    this.backendClient = backendClient;
+  constructor(backendOrQueue?: IBackendClient | EventQueue) {
+    if (backendOrQueue && 'uploadEvents' in backendOrQueue) {
+      this.backendClient = backendOrQueue as IBackendClient;
+    } else if (backendOrQueue && 'getAll' in backendOrQueue) {
+      this.eventQueue = backendOrQueue as EventQueue;
+    }
   }
 
-  public async fetchStats(mode: StatusBarInfoMode, token: string, now = new Date()): Promise<number> {
-    const minutesQuery = calculateMinutesQuery(mode, now);
-    try {
-      const res = await this.backendClient.fetchStats(token, minutesQuery);
-      const minutes = res.minutes;
-      this.cachedMinutes.set(mode, minutes);
-      this.offlineState = false;
-      return minutes;
-    } catch (err: unknown) {
-      this.offlineState = true;
-      const cached = this.cachedMinutes.get(mode);
-      if (cached !== undefined) {
-        return cached;
+  public async fetchStats(mode: StatusBarInfoMode, tokenOrNow?: string | Date, maybeNow?: Date): Promise<number> {
+    const token = typeof tokenOrNow === 'string' ? tokenOrNow : undefined;
+    const now = tokenOrNow instanceof Date ? tokenOrNow : (maybeNow || new Date());
+
+    if (this.backendClient && token) {
+      const minutesQuery = calculateMinutesQuery(mode, now);
+      try {
+        const res = await this.backendClient.fetchStats(token, minutesQuery);
+        const minutes = res.minutes;
+        this.cachedMinutes.set(mode, minutes);
+        this.offlineState = false;
+        return minutes;
+      } catch (err: unknown) {
+        this.offlineState = true;
+        const cached = this.cachedMinutes.get(mode);
+        if (cached !== undefined) {
+          return cached;
+        }
+        throw err;
       }
-      throw err;
     }
+
+    // Standalone local calculation
+    const events = this.eventQueue ? this.eventQueue.getAll() : [];
+    const minutes = calculateLocalMinutes(events, mode, now);
+    this.cachedMinutes.set(mode, minutes);
+    this.offlineState = false;
+    return minutes;
   }
 
   public getCachedMinutes(mode: StatusBarInfoMode): number | undefined {

@@ -110,7 +110,7 @@ export class TokenManager {
 
     // Validate token against backend
     const config = getConfig();
-    const isValid = await this.validateToken(trimmed, config.serverEntrypoint);
+    const isValid = await this.validateToken(trimmed, config.serverEntrypoint || 'https://api.codetime.dev');
     if (!isValid) {
       vscode.window.showErrorMessage(t('Gridly: Token validation failed'));
       return false;

@@ -47,7 +47,8 @@ export class HttpBackendClient implements IBackendClient {
     const payload = events.length === 1 ? this.mapEventForServer(events[0]) : events.map(this.mapEventForServer);
 
     try {
-      const res = await this.rawRequest('POST', endpoint, token, payload, config.serverEntrypoint);
+      const serverUrl = config.serverEntrypoint || 'https://api.codetime.dev';
+      const res = await this.rawRequest('POST', endpoint, token, payload, serverUrl);
       return {
         success: res.statusCode >= 200 && res.statusCode < 300,
         statusCode: res.statusCode,
@@ -67,7 +68,8 @@ export class HttpBackendClient implements IBackendClient {
   public async fetchStats(token: string, minutes: number): Promise<{ minutes: number }> {
     const config = getConfig();
     const endpoint = `/v3/users/self/minutes?minutes=${minutes}`;
-    const res = await this.rawRequest('GET', endpoint, token, undefined, config.serverEntrypoint);
+    const serverUrl = config.serverEntrypoint || 'https://api.codetime.dev';
+    const res = await this.rawRequest('GET', endpoint, token, undefined, serverUrl);
     if (res.statusCode >= 200 && res.statusCode < 300) {
       const parsed = JSON.parse(res.body);
       return { minutes: Number(parsed.minutes ?? 0) };
@@ -100,7 +102,7 @@ export class HttpBackendClient implements IBackendClient {
     path: string,
     token: string,
     body?: unknown,
-    serverUrl = getConfig().serverEntrypoint
+    serverUrl = getConfig().serverEntrypoint || 'https://api.codetime.dev'
   ): Promise<{ statusCode: number; body: string; retryAfterSeconds?: number }> {
     const targetUrl = new URL(path, serverUrl);
     const proxy = getEffectiveProxyUrl();

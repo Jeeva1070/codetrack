@@ -3,6 +3,7 @@ import { IActivityEvent } from './tracker';
 
 export const QUEUE_STORAGE_KEY = 'gridly.eventQueue';
 export const LEGACY_QUEUE_STORAGE_KEY = 'codetrack.eventQueue';
+export const MAX_STORED_EVENTS = 5000;
 
 export class EventQueue {
   private inMemoryQueue: IActivityEvent[] = [];
@@ -37,6 +38,9 @@ export class EventQueue {
       return;
     }
     this.inMemoryQueue.push(...events);
+    if (this.inMemoryQueue.length > MAX_STORED_EVENTS) {
+      this.inMemoryQueue = this.inMemoryQueue.slice(this.inMemoryQueue.length - MAX_STORED_EVENTS);
+    }
     this.persist();
   }
 

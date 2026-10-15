@@ -1,15 +1,13 @@
 import * as vscode from 'vscode';
 import { getConfig } from './config';
-import { initI18n, t } from './i18n';
+import { initI18n } from './i18n';
 import { TokenManager } from './token';
 import { EventQueue } from './queue';
-import { HttpBackendClient, Uploader } from './uploader';
 import { StatsService } from './stats';
 import { CodeTrackStatusBar } from './statusBar';
 import { ActivityTracker } from './tracker';
 import { registerCommands } from './commands';
 
-let uploaderInstance: Uploader | undefined;
 let statusBarInstance: CodeTrackStatusBar | undefined;
 let trackerInstance: ActivityTracker | undefined;
 
@@ -22,64 +20,36 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const initialConfig = getConfig();
     await initI18n(context.extensionUri, initialConfig.displayLanguage);
 
-    // 2. Resolve token
+    // 2. Setup TokenManager for backwards compatibility (optional)
     const tokenManager = new TokenManager(context.secrets);
-    const token = await tokenManager.resolveToken();
 
-    // 3. Setup Queue and Backend Client
+    // 3. Setup Standalone Local Queue & Local Stats Service
     const eventQueue = new EventQueue(context.globalState);
-    let backendClient = new HttpBackendClient(outputChannel);
-    const statsService = new StatsService(backendClient);
+    const statsService = new StatsService(eventQueue);
 
-    // 4. Create Status Bar
-    const statusBar = new CodeTrackStatusBar(statsService, tokenManager);
+    // 4. Create Status Bar (points to local stats, opens in-editor dashboard)
+    const statusBar = new CodeTrackStatusBar(statsService);
     statusBarInstance = statusBar;
     context.subscriptions.push(statusBar);
 
-    // 5. Setup Uploader Loop
-    const uploader = new Uploader(eventQueue, backendClient, tokenManager, outputChannel);
-    uploaderInstance = uploader;
-    uploader.setOnFlushSuccess(() => {
-      statusBar.refresh();
-    });
-    uploader.start();
-    context.subscriptions.push({
-      dispose: () => uploader.stop(),
-    });
-
-    // 6. Setup Tracker
+    // 5. Setup Activity Tracker: records coding activity locally
     const tracker = new ActivityTracker((event) => {
       eventQueue.push(event);
-      uploader.onEventsAdded();
+      statusBar.refresh();
     });
     trackerInstance = tracker;
     context.subscriptions.push(tracker);
 
-    // 7. Register Commands
+    // 6. Register Commands (Dashboard, Time mode switch, etc.)
     registerCommands(context, tokenManager, statusBar, eventQueue);
 
-    // 8. One-time notification if token is missing
-    if (!token) {
-      statusBar.setNoToken();
-      const enterTokenBtn = t('Enter Token');
-      vscode.window
-        .showInformationMessage(t('Gridly: Without Token'), enterTokenBtn)
-        .then((choice) => {
-          if (choice === enterTokenBtn) {
-            tokenManager.promptAndSetToken(() => {
-              statusBar.refresh(true);
-            });
-          }
-        });
-    } else {
-      // Fetch initial duration in background without blocking activate()
-      statusBar.refresh();
-    }
+    // 7. Initial status bar display
+    await statusBar.refresh();
 
-    // 9. Start stats refresh timer (every 60s)
+    // 8. Start periodic stats refresh timer (every 60s)
     statusBar.startRefreshTimer();
 
-    // 10. Register live onDidChangeConfiguration listener
+    // 9. Register live onDidChangeConfiguration listener
     context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(async (e) => {
         if (!e.affectsConfiguration('gridly')) {
@@ -94,22 +64,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
           await statusBar.refresh();
         }
 
-        // React to serverEntrypoint or proxy changes live
-        if (e.affectsConfiguration('gridly.serverEntrypoint') || e.affectsConfiguration('gridly.proxy')) {
-          backendClient = new HttpBackendClient(outputChannel);
-          uploader.setBackendClient(backendClient);
-          uploader.flush();
-          await statusBar.refresh();
-        }
-
-        // React to statusBarInfo mode change live
+        // React to statusBarInfo mode change live ('Total' | 'Today' | '24h')
         if (e.affectsConfiguration('gridly.statusBarInfo')) {
           await statusBar.refresh();
         }
       })
     );
 
-    outputChannel.appendLine('[Gridly] Extension activated successfully');
+    outputChannel.appendLine('[Gridly] Standalone local extension activated successfully');
   } catch (err: unknown) {
     // Activation must never throw
     console.error('[Gridly] Error during activation:', err);
@@ -122,10 +84,5 @@ export async function deactivate(): Promise<void> {
   }
   if (statusBarInstance) {
     statusBarInstance.stopRefreshTimer();
-  }
-  if (uploaderInstance) {
-    uploaderInstance.stop();
-    // Flush remaining queued events on window close/deactivate
-    await uploaderInstance.flush();
   }
 }

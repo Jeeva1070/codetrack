@@ -4,7 +4,9 @@ export type StatusBarInfoMode = 'Total' | 'Today' | '24h';
 
 export interface IExtensionConfig {
   statusBarInfo: StatusBarInfoMode;
-  serverEntrypoint: string;
+  serverEntrypoint?: string;
+  supabaseUrl?: string;
+  supabaseKey?: string;
   proxy: string;
   displayLanguage: string;
   trackingEnabled: boolean;
@@ -13,8 +15,8 @@ export interface IExtensionConfig {
 
 export const CONFIG_SECTION = 'gridly';
 
-export const DEFAULT_SERVER_ENTRYPOINT = 'https://api.codetime.dev';
-export const DEFAULT_DASHBOARD_URL = 'https://codetime.dev/dashboard';
+export const DEFAULT_SUPABASE_URL = 'https://wixjrwlnsabceldorizr.supabase.co';
+export const DEFAULT_SUPABASE_KEY = 'sb_publishable_3jx87229ubC1A7ZubateSQ_haHQ4P3Z';
 
 /**
  * Reads the current extension configuration from VS Code workspace.
@@ -23,7 +25,9 @@ export function getConfig(): IExtensionConfig {
   const config = vscode.workspace.getConfiguration(CONFIG_SECTION);
   return {
     statusBarInfo: config.get<StatusBarInfoMode>('statusBarInfo', 'Total'),
-    serverEntrypoint: (config.get<string>('serverEntrypoint', DEFAULT_SERVER_ENTRYPOINT) || DEFAULT_SERVER_ENTRYPOINT).trim().replace(/\/+$/, ''),
+    serverEntrypoint: config.get<string>('serverEntrypoint', 'https://api.codetime.dev'),
+    supabaseUrl: (config.get<string>('supabaseUrl', DEFAULT_SUPABASE_URL) || DEFAULT_SUPABASE_URL).trim().replace(/\/+$/, ''),
+    supabaseKey: (config.get<string>('supabaseKey', DEFAULT_SUPABASE_KEY) || DEFAULT_SUPABASE_KEY).trim(),
     proxy: (config.get<string>('proxy', '') || '').trim(),
     displayLanguage: config.get<string>('displayLanguage', 'Auto'),
     trackingEnabled: config.get<boolean>('trackingEnabled', true),
@@ -54,23 +58,19 @@ export function getEffectiveProxyUrl(): string {
 }
 
 /**
- * Derives the dashboard URL from the server entrypoint URL.
- * If server is api.codetime.dev -> https://codetime.dev/dashboard.
- * Otherwise uses the entrypoint host + /dashboard.
+ * Derives the dashboard URL from the server or project URL.
  */
-export function getDashboardUrl(serverEntrypoint?: string): string {
-  const entry = serverEntrypoint || getConfig().serverEntrypoint;
+export function getDashboardUrl(customUrl?: string): string {
+  const rawUrl = customUrl || getConfig().serverEntrypoint || getConfig().supabaseUrl || '';
   try {
-    const parsed = new URL(entry);
-    if (parsed.hostname.includes('api.codetime.dev')) {
-      return DEFAULT_DASHBOARD_URL;
+    const parsed = new URL(rawUrl);
+    if (parsed.hostname === 'api.codetime.dev') {
+      return 'https://codetime.dev/dashboard';
     }
-    // For custom backends, strip 'api.' prefix if present and append /dashboard
-    const host = parsed.hostname.startsWith('api.') ? parsed.hostname.slice(4) : parsed.hostname;
-    const port = parsed.port ? `:${parsed.port}` : '';
-    return `${parsed.protocol}//${host}${port}/dashboard`;
+    const host = parsed.host.replace(/^api\./, '');
+    return `${parsed.protocol}//${host}/dashboard`;
   } catch {
-    return DEFAULT_DASHBOARD_URL;
+    return rawUrl;
   }
 }
 

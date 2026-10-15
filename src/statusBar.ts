@@ -7,10 +7,10 @@ import { getConfig } from './config';
 export class CodeTrackStatusBar implements vscode.Disposable {
   private readonly statusBarItem: vscode.StatusBarItem;
   private readonly statsService: StatsService;
-  private readonly tokenManager: TokenManager;
+  private readonly tokenManager?: TokenManager;
   private refreshTimer?: NodeJS.Timeout;
 
-  constructor(statsService: StatsService, tokenManager: TokenManager) {
+  constructor(statsService: StatsService, tokenManager?: TokenManager) {
     this.statsService = statsService;
     this.tokenManager = tokenManager;
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
@@ -56,22 +56,24 @@ export class CodeTrackStatusBar implements vscode.Disposable {
   }
 
   /**
-   * Refreshes the status bar state according to token and server stats.
+   * Refreshes the status bar state according to token and stats.
    */
   public async refresh(showSuccessToast = false): Promise<void> {
-    if (!this.tokenManager.hasToken()) {
-      this.setNoToken();
-      return;
-    }
+    if (this.tokenManager) {
+      if (!this.tokenManager.hasToken()) {
+        this.setNoToken();
+        return;
+      }
 
-    if (this.tokenManager.isInvalid()) {
-      this.setInvalidToken();
-      return;
+      if (this.tokenManager.isInvalid()) {
+        this.setInvalidToken();
+        return;
+      }
     }
 
     const config = getConfig();
     const mode = config.statusBarInfo;
-    const token = this.tokenManager.getToken();
+    const token = this.tokenManager ? this.tokenManager.getToken() : undefined;
 
     try {
       const minutes = await this.statsService.fetchStats(mode, token);
@@ -85,9 +87,9 @@ export class CodeTrackStatusBar implements vscode.Disposable {
       if (cached !== undefined) {
         await this.setOffline(cached);
       } else {
-        this.statusBarItem.text = `$(clock) ${t('Gridly: Network Error')}`;
-        this.statusBarItem.tooltip = t('Gridly: Network Error');
-        this.statusBarItem.command = 'gridly.toDashboard';
+        this.statusBarItem.text = `$(clock) 0m`;
+        this.statusBarItem.tooltip = t('Gridly: Head to dashboard for statistics');
+        this.statusBarItem.command = 'gridly.viewDashboard';
       }
     }
   }

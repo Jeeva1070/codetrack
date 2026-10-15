@@ -1,5 +1,6 @@
 import './setup';
 import * as assert from 'node:assert';
+import * as vscode from 'vscode';
 import { calculateMinutesQuery, StatsService } from '../../stats';
 import { IBackendClient } from '../../uploader';
 
@@ -53,5 +54,76 @@ describe('StatsService Unit Tests', () => {
     const fallback = await service.fetchStats('Total', 'dummy-token');
     assert.strictEqual(fallback, 300);
     assert.strictEqual(service.isOffline(), true);
+  });
+
+  it('should compute standalone minutes locally from EventQueue with zero API and zero token', async () => {
+    class DummyMemento implements vscode.Memento {
+      private map = new Map<string, unknown>();
+      keys(): readonly string[] {
+        return Array.from(this.map.keys());
+      }
+      get<T>(key: string): T | undefined;
+      get<T>(key: string, defaultValue: T): T;
+      get<T>(key: string, defaultValue?: T): T | undefined {
+        return this.map.has(key) ? (this.map.get(key) as T) : defaultValue;
+      }
+      async update(key: string, value: unknown): Promise<void> {
+        this.map.set(key, value);
+      }
+    }
+
+    const { EventQueue } = await import('../../queue');
+    const queue = new EventQueue(new DummyMemento());
+
+    const now = new Date('2026-10-15T12:00:00Z');
+    const nowMs = now.getTime();
+
+    // Push 3 events: two within the same 2-minute bucket, one 10 minutes later
+    queue.push(
+      {
+        id: '1',
+        timestamp: nowMs - 1000, // 1 sec ago
+        project: 'test-project',
+        language: 'typescript',
+        file: 'test.ts',
+        platform: 'macOS',
+        platformArch: 'arm64',
+        editor: 'vscode',
+        operationType: 'write',
+      },
+      {
+        id: '2',
+        timestamp: nowMs - 30000, // 30 sec ago (same 2-minute bucket)
+        project: 'test-project',
+        language: 'typescript',
+        file: 'test.ts',
+        platform: 'macOS',
+        platformArch: 'arm64',
+        editor: 'vscode',
+        operationType: 'write',
+      },
+      {
+        id: '3',
+        timestamp: nowMs - 10 * 60 * 1000, // 10 min ago (different bucket)
+        project: 'test-project',
+        language: 'typescript',
+        file: 'test.ts',
+        platform: 'macOS',
+        platformArch: 'arm64',
+        editor: 'vscode',
+        operationType: 'save',
+      }
+    );
+
+    const standaloneService = new StatsService(queue);
+    // Fetch stats in standalone mode with no token passed
+    const todayMinutes = await standaloneService.fetchStats('Today', now);
+    assert.strictEqual(todayMinutes, 4); // 2 distinct buckets * 2 min = 4 min
+
+    const totalMinutes = await standaloneService.fetchStats('Total', now);
+    assert.strictEqual(totalMinutes, 4);
+
+    const h24Minutes = await standaloneService.fetchStats('24h', now);
+    assert.strictEqual(h24Minutes, 4);
   });
 });
