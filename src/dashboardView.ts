@@ -46,7 +46,7 @@ export class DashboardPanel {
     const languages = calculateLanguageStats(events);
     const platforms = calculatePlatformStats(events);
     const leaderboard = calculateLeaderboard([
-      { name: 'You (Active Workspace)', minutes: heatmap.totalMinutes || 185 },
+      { name: 'You (Active Workspace)', minutes: heatmap.totalMinutes },
       { name: 'Alex Rivers', minutes: 420 },
       { name: 'Sarah Chen', minutes: 360 },
       { name: 'Elena Rostova', minutes: 295 },

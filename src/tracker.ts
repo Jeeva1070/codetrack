@@ -1,4 +1,5 @@
 import * as os from 'node:os';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { v4 as uuidv4 } from 'uuid';
 import osName from 'os-name';
@@ -168,7 +169,7 @@ export class ActivityTracker implements vscode.Disposable {
 
     let relativeFilePath = vscode.workspace.asRelativePath(doc.fileName);
     if (relativeFilePath === doc.fileName) {
-      relativeFilePath = '[other workspace]';
+      relativeFilePath = path.basename(doc.fileName);
     }
 
     if (this.shouldThrottle(relativeFilePath, operationType, now)) {
