@@ -139,9 +139,9 @@ export class TokenManager {
       return this.customValidator(token, serverEntrypoint || '');
     }
 
-    // Accepts DevHabit extension tokens (dh_...) or standard local tokens
+    // Format check only when no server validator is configured.
     const trimmed = token.trim();
-    return trimmed.startsWith('dh_') || trimmed.length >= 6;
+    return /^dh_[a-f0-9]{32}$/i.test(trimmed);
   }
 
   /**

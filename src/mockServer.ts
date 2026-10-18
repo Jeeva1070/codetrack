@@ -69,6 +69,46 @@ export class MockCodeTrackServer {
           return;
         }
 
+        if (req.method === 'POST' && url.pathname === '/rest/v1/rpc/ingest_coding_events') {
+          const chunks: Buffer[] = [];
+          req.on('data', (c) => chunks.push(c));
+          req.on('end', () => {
+            try {
+              const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+              const events = body?.p_events;
+              if (!Array.isArray(events) || events.length < 1 || events.length > 50) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Expected between 1 and 50 events.' }));
+                return;
+              }
+              if (events.some((event: unknown) => !event || typeof event !== 'object' || Array.isArray(event))) {
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: 'Each event must be an object.' }));
+                return;
+              }
+
+              const acceptedEventIds: string[] = [];
+              for (const event of events) {
+                acceptedEventIds.push(String(event.id));
+                this.receivedEvents.push({
+                  ...event,
+                  eventTime: Date.parse(String(event.event_time || '')) || Date.now(),
+                  relativeFile: event.relative_file,
+                  operationType: event.operation_type,
+                  platformArch: event.platform_arch,
+                });
+              }
+
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, statusCode: 200, acceptedEventIds }));
+            } catch {
+              res.writeHead(400, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ error: 'Invalid JSON body' }));
+            }
+          });
+          return;
+        }
+
         if (req.method === 'POST' && url.pathname === '/v3/users/event-log') {
           const chunks: Buffer[] = [];
           req.on('data', (c) => chunks.push(c));

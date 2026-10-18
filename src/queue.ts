@@ -8,9 +8,11 @@ export const MAX_STORED_EVENTS = 5000;
 export class EventQueue {
   private inMemoryQueue: IActivityEvent[] = [];
   private readonly globalState: vscode.Memento;
+  private readonly storageKey: string;
 
-  constructor(globalState: vscode.Memento) {
+  constructor(globalState: vscode.Memento, storageKey = QUEUE_STORAGE_KEY) {
     this.globalState = globalState;
+    this.storageKey = storageKey;
     this.load();
   }
 
@@ -20,8 +22,8 @@ export class EventQueue {
   public load(): void {
     try {
       const persisted =
-        this.globalState.get<IActivityEvent[]>(QUEUE_STORAGE_KEY) ||
-        this.globalState.get<IActivityEvent[]>(LEGACY_QUEUE_STORAGE_KEY, []);
+        this.globalState.get<IActivityEvent[]>(this.storageKey) ||
+        (this.storageKey === QUEUE_STORAGE_KEY ? this.globalState.get<IActivityEvent[]>(LEGACY_QUEUE_STORAGE_KEY, []) : []);
       if (Array.isArray(persisted)) {
         this.inMemoryQueue = [...persisted];
       }
@@ -87,7 +89,7 @@ export class EventQueue {
 
   private persist(): void {
     try {
-      this.globalState.update(QUEUE_STORAGE_KEY, this.inMemoryQueue);
+      this.globalState.update(this.storageKey, this.inMemoryQueue);
     } catch {
       // ignore
     }

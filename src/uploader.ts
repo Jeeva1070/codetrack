@@ -16,6 +16,8 @@ export interface UploadResponse {
   statusCode: number;
   retryAfterSeconds?: number;
   error?: string;
+  acceptedEventIds?: string[];
+  rejectedEventId?: string;
 }
 
 export interface IBackendClient {
@@ -40,20 +42,51 @@ export class HttpBackendClient implements IBackendClient {
     }
 
     const config = getConfig();
-    const endpoint = '/v3/users/event-log';
-
-    // The reference server accepts both single event object or list.
-    // For single event: sends the object directly; for batch: maps payload to standard format.
-    const payload = events.length === 1 ? this.mapEventForServer(events[0]) : events.map(this.mapEventForServer);
-
     try {
-      const serverUrl = config.serverEntrypoint || config.supabaseUrl || 'http://localhost:54321';
-      const res = await this.rawRequest('POST', endpoint, token, payload, serverUrl);
-      return {
-        success: res.statusCode >= 200 && res.statusCode < 300,
-        statusCode: res.statusCode,
-        retryAfterSeconds: res.retryAfterSeconds,
+      const res = await this.rawRequest(
+        'POST', '/rest/v1/rpc/ingest_coding_events',
+        {
+          p_extension_token: token,
+          p_events: events.map((event) => this.mapEventForServer(event)),
+        },
+        config.serverEntrypoint || config.supabaseUrl
+      );
+
+      if (res.statusCode < 200 || res.statusCode >= 300) {
+        return {
+          success: false,
+          statusCode: res.statusCode,
+          retryAfterSeconds: res.retryAfterSeconds,
+          error: res.body,
+        };
+      }
+
+      const result = JSON.parse(res.body) as {
+        success?: boolean;
+        statusCode?: number;
+        retryAfterSeconds?: number;
+        error?: string;
+        acceptedEventIds?: string[];
+        rejectedEventId?: string;
       };
+      const acceptedEventIds = Array.isArray(result.acceptedEventIds)
+        ? result.acceptedEventIds
+        : result.success === true
+          ? events.map((event) => event.id)
+          : [];
+
+      if (result.success === false) {
+        return {
+          success: false,
+          statusCode: result.statusCode || 500,
+          retryAfterSeconds: result.retryAfterSeconds,
+          error: result.error,
+          acceptedEventIds,
+          rejectedEventId: result.rejectedEventId,
+        };
+      }
+
+      return { success: true, statusCode: res.statusCode, acceptedEventIds };
     } catch (err: unknown) {
       const errorObj = err as { statusCode?: number; retryAfterSeconds?: number; message?: string };
       return {
@@ -67,40 +100,51 @@ export class HttpBackendClient implements IBackendClient {
 
   public async fetchStats(token: string, minutes: number): Promise<{ minutes: number }> {
     const config = getConfig();
-    const endpoint = `/v3/users/self/minutes?minutes=${minutes}`;
-    const serverUrl = config.serverEntrypoint || config.supabaseUrl || 'http://localhost:54321';
-    const res = await this.rawRequest('GET', endpoint, token, undefined, serverUrl);
+    const res = await this.rawRequest(
+      'POST', '/rest/v1/rpc/extension_coding_minutes',
+      { p_extension_token: token, p_minutes: minutes }, config.serverEntrypoint || config.supabaseUrl
+    );
     if (res.statusCode >= 200 && res.statusCode < 300) {
       const parsed = JSON.parse(res.body);
-      return { minutes: Number(parsed.minutes ?? 0) };
+      return { minutes: Number(parsed ?? 0) };
     }
     const err = new Error(`Failed to fetch stats: HTTP ${res.statusCode}`) as Error & { statusCode: number };
     err.statusCode = res.statusCode;
     throw err;
   }
 
+  public async validateToken(token: string): Promise<boolean> {
+    try {
+      const config = getConfig();
+      const response = await this.rawRequest(
+        'POST', '/rest/v1/rpc/extension_token_validate',
+        { p_extension_token: token }, config.serverEntrypoint || config.supabaseUrl
+      );
+      return response.statusCode >= 200 && response.statusCode < 300 && JSON.parse(response.body) === true;
+    } catch {
+      return false;
+    }
+  }
+
   private mapEventForServer(e: IActivityEvent) {
     return {
       id: e.id,
+      event_time: new Date(e.timestamp).toISOString(),
       project: e.project,
       language: e.language,
-      relativeFile: e.file,
-      absoluteFile: e.absoluteFile,
+      relative_file: e.file,
       editor: e.editor,
       platform: e.platform,
-      platformArch: e.platformArch,
-      eventTime: e.timestamp,
-      eventType: e.operationType,
-      gitBranch: e.gitBranch,
-      gitOrigin: e.gitOrigin,
-      operationType: e.operationType === 'save' || e.operationType === 'write' ? 'write' : 'read',
+      platform_arch: e.platformArch,
+      event_type: e.operationType === 'focus' ? 'focus' : 'file_change',
+      git_branch: e.gitBranch,
+      operation_type: e.operationType === 'save' || e.operationType === 'write' ? 'write' : 'read',
     };
   }
 
   private rawRequest(
     method: string,
     path: string,
-    token: string,
     body?: unknown,
     serverUrl = getConfig().serverEntrypoint || getConfig().supabaseUrl || 'http://localhost:54321'
   ): Promise<{ statusCode: number; body: string; retryAfterSeconds?: number }> {
@@ -112,7 +156,8 @@ export class HttpBackendClient implements IBackendClient {
 
     const baseHeaders: Record<string, string> = {
       'User-Agent': this.getUserAgent(),
-      'Authorization': `Bearer ${token}`,
+      'Authorization': `Bearer ${getConfig().supabaseKey}`,
+      'apikey': getConfig().supabaseKey,
     };
     if (payload) {
       baseHeaders['Content-Type'] = 'application/json';
@@ -345,6 +390,10 @@ export class Uploader {
         return true;
       }
 
+      // A batch may have partially reached the server before a later event
+      // failed. Remove only events confirmed accepted by the backend.
+      this.queue.remove(result.acceptedEventIds || []);
+
       // Handle HTTP status errors
       const status = result.statusCode;
       if (status === 401 || status === 403) {
@@ -365,11 +414,15 @@ export class Uploader {
       }
 
       if (status >= 400 && status < 500) {
-        // Unrecoverable client error (e.g. 400 Bad Request): drop batch and log
+        // Isolate a poison event so it cannot discard valid events behind it.
         if (this.outputChannel) {
-          this.outputChannel.appendLine(`[Upload] Client error ${status}, dropping batch of ${batch.length} events`);
+          this.outputChannel.appendLine(`[Upload] Client error ${status}, dropping rejected event ${result.rejectedEventId || '(unknown)'}`);
         }
-        this.queue.remove(batch.map((e) => e.id));
+        if (result.rejectedEventId) {
+          this.queue.remove([result.rejectedEventId]);
+        } else {
+          this.applyBackoff();
+        }
         return false;
       }
 

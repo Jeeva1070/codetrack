@@ -69,6 +69,12 @@ export class ActivityTracker implements vscode.Disposable {
       return false;
     }
 
+    const basename = path.basename(doc.fileName).toLowerCase();
+    if (/^(\.env($|\.)|id_rsa$|id_ed25519$|credentials?(\.|$)|secrets?(\.|$))/.test(basename)
+        || /\.(pem|key|p12|pfx|mobileprovision)$/.test(basename)) {
+      return false;
+    }
+
     // Ignore untitled files with no content or no language specified
     if (doc.isUntitled && (!doc.languageId || doc.languageId === 'plaintext')) {
       if (doc.getText().trim().length === 0) {
@@ -164,7 +170,20 @@ export class ActivityTracker implements vscode.Disposable {
       return null;
     }
 
-    // Update last activity heartbeat
+    // Do not treat editor events received while VS Code is in the background as activity.
+    if (!this.isWindowFocused) {
+      return null;
+    }
+
+    // The first event after an idle period starts a fresh activity window. Clear
+    // per-file throttles so a quick blur/refocus cycle cannot suppress that event.
+    const startsNewActivityWindow = this.isIdle(now);
+    if (startsNewActivityWindow) {
+      this.lastFileEvents.clear();
+    }
+
+    // Update the heartbeat for every focused editor interaction, including a
+    // throttled event, so throttling does not make the tracker look idle.
     this.lastActivityTime = now;
 
     let relativeFilePath = vscode.workspace.asRelativePath(doc.fileName);

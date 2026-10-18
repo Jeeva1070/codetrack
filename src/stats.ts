@@ -58,9 +58,10 @@ export class StatsService {
   private readonly cachedMinutes = new Map<StatusBarInfoMode, number>();
   private offlineState = false;
 
-  constructor(backendOrQueue?: IBackendClient | EventQueue) {
+  constructor(backendOrQueue?: IBackendClient | EventQueue, eventQueue?: EventQueue) {
     if (backendOrQueue && 'uploadEvents' in backendOrQueue) {
       this.backendClient = backendOrQueue as IBackendClient;
+      this.eventQueue = eventQueue;
     } else if (backendOrQueue && 'getAll' in backendOrQueue) {
       this.eventQueue = backendOrQueue as EventQueue;
     }

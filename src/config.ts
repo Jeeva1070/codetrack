@@ -6,7 +6,7 @@ export interface IExtensionConfig {
   statusBarInfo: StatusBarInfoMode;
   serverEntrypoint?: string;
   supabaseUrl?: string;
-  supabaseKey?: string;
+  supabaseKey: string;
   proxy: string;
   displayLanguage: string;
   trackingEnabled: boolean;
@@ -31,7 +31,7 @@ export function getConfig(): IExtensionConfig {
     proxy: (config.get<string>('proxy', '') || '').trim(),
     displayLanguage: config.get<string>('displayLanguage', 'Auto'),
     trackingEnabled: config.get<boolean>('trackingEnabled', true),
-    obfuscateFilePaths: config.get<boolean>('obfuscateFilePaths', false),
+    obfuscateFilePaths: config.get<boolean>('obfuscateFilePaths', true),
   };
 }
 

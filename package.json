@@ -101,7 +101,7 @@
         },
         "gridly.obfuscateFilePaths": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "%config.obfuscateFilePaths.description%"
         }
       }

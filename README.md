@@ -16,9 +16,9 @@ Modeled on the architecture of the open-source CodeTime extension, Gridly featur
   - **Total**: All-time accumulated programming duration.
   - **Today**: Programming time since midnight in your local timezone.
   - **24h**: Programming time across the trailing 24 hours.
-- **Offline & Crash Resilient**: Events are buffered in memory and mirrored to persistent storage. If your network drops or the server is temporarily unavailable, your coding time is never lost.
-- **Privacy First**: Gridly **never** logs or transmits file contents, keystrokes, terminal contents, or clipboard data.
-- **Path Obfuscation**: Optional setting to hash relative workspace paths with SHA-256 for complete confidentiality in proprietary codebases.
+- **Offline & Crash Resilient**: Events are buffered locally and retried with backoff. Up to 50 events are sent in one request. The upload queue is bounded to 5,000 events; when full, the oldest queued events are removed.
+- **Privacy First**: Gridly never reads or transmits file contents, keystroke contents, terminal contents, or clipboard data. Sensitive filenames are excluded.
+- **Path Obfuscation**: Relative paths are SHA-256 hashed by default. Absolute paths are not uploaded.
 - **Internationalization**: Localized in 13 languages (English, Simplified Chinese, Traditional Chinese, Japanese, German, French, Spanish, Italian, Brazilian Portuguese, Russian, Korean, Hindi, and Urdu with RTL support).
 
 ---
@@ -76,7 +76,7 @@ Gridly only collects high-level programming activity telemetry to accurately com
 | `gridly.statusBarInfo` | `enum` | `"Total"` | Choose between `"Total"`, `"Today"`, and `"24h"`. |
 | `gridly.displayLanguage` | `enum` | `"Auto"` | Display language (or `"Auto"` to match VS Code). |
 | `gridly.trackingEnabled` | `boolean` | `true` | Enable or disable programming activity tracking. |
-| `gridly.obfuscateFilePaths` | `boolean` | `false` | When enabled, converts file paths into SHA-256 hashes before reporting. |
+| `gridly.obfuscateFilePaths` | `boolean` | `true` | When enabled, converts relative file paths into SHA-256 hashes before reporting. Absolute paths are never uploaded. |
 
 ---
 

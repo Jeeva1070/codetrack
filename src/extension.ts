@@ -7,9 +7,11 @@ import { StatsService } from './stats';
 import { CodeTrackStatusBar } from './statusBar';
 import { ActivityTracker } from './tracker';
 import { registerCommands } from './commands';
+import { HttpBackendClient, Uploader } from './uploader';
 
 let statusBarInstance: CodeTrackStatusBar | undefined;
 let trackerInstance: ActivityTracker | undefined;
+let uploaderInstance: Uploader | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   try {
@@ -20,21 +22,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const initialConfig = getConfig();
     await initI18n(context.extensionUri, initialConfig.displayLanguage);
 
-    // 2. Setup TokenManager for backwards compatibility (optional)
-    const tokenManager = new TokenManager(context.secrets);
+    // 2. Resolve and validate the personal Supabase extension token.
+    const backendClient = new HttpBackendClient(outputChannel);
+    const tokenManager = new TokenManager(context.secrets, (token) => backendClient.validateToken(token));
+    await tokenManager.resolveToken();
 
     // 3. Setup Standalone Local Queue & Local Stats Service
     const eventQueue = new EventQueue(context.globalState);
-    const statsService = new StatsService(eventQueue);
+    const uploadQueue = new EventQueue(context.globalState, 'gridly.uploadQueue');
+    const statsService = new StatsService(backendClient, eventQueue);
 
     // 4. Create Status Bar (points to local stats, opens in-editor dashboard)
-    const statusBar = new CodeTrackStatusBar(statsService);
+    const statusBar = new CodeTrackStatusBar(statsService, tokenManager);
     statusBarInstance = statusBar;
     context.subscriptions.push(statusBar);
 
     // 5. Setup Activity Tracker: records coding activity locally
     const tracker = new ActivityTracker((event) => {
       eventQueue.push(event);
+      uploadQueue.push(event);
+      uploaderInstance?.onEventsAdded();
       statusBar.refresh();
     });
     trackerInstance = tracker;
@@ -42,6 +49,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // 6. Register Commands (Dashboard, Time mode switch, etc.)
     registerCommands(context, tokenManager, statusBar, eventQueue);
+
+    const uploader = new Uploader(uploadQueue, backendClient, tokenManager, outputChannel);
+    uploader.setOnFlushSuccess(() => { void statusBar.refresh(); });
+    uploader.start();
+    uploaderInstance = uploader;
+    // Drain events left from a previous offline session as soon as activation
+    // completes instead of waiting for the first periodic timer tick.
+    void uploader.flush();
 
     // 7. Initial status bar display
     await statusBar.refresh();
@@ -79,6 +94,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 export async function deactivate(): Promise<void> {
+  if (uploaderInstance) {
+    uploaderInstance.stop();
+  }
   if (trackerInstance) {
     trackerInstance.dispose();
   }
