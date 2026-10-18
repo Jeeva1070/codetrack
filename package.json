@@ -2,7 +2,7 @@
   "publisher": "jeevavarshan",
   "name": "gridly",
   "displayName": "%extension.name%",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "%extension.description%",
   "categories": [
     "Other"
